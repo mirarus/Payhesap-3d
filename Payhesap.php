@@ -7,7 +7,7 @@
  * PHP versions 5 and 7
  *
  * @author  Mirarus <aliguclutr@gmail.com>
- * @version 1.8
+ * @version 1.0
  * @link https://github.com/mirarus/Payhesap
  *
  */
@@ -180,7 +180,6 @@ class Payhesap
 			} else {
 
 				$result = json_decode($response, true);
-				print_r($post);
 				if ($result['status'] == true) {
 					return $result['payUrl'];
 				} else {
@@ -193,30 +192,42 @@ class Payhesap
 
 	public function callback()
 	{
-		echo '<pre>';
-		print_r($_REQUEST);
-		echo '</pre>';
-		/*$status         = $this->post('status');
-		$result_message = $this->post('resultMessage');
-		$other_code     = $this->post('otherCode');
-		$verify_hash    = $this->post('VerifyHash');
-		$amount         = $this->post('amount');
+		$status   = $this->post('STATUS');
+		$order_id = $this->post('ORDER_REF_NUMBER');
+		$hash     = $this->post('HASH');
 
 		if ($status == true) {
 
-			$hash = hash("sha256", $merchant_id . "|" . $merchant_mail . "|" . $merchant_secret . "|" . $other_code . "|true");
-			if ($hash == $verify_hash) {
-				return [
-					'order_id' => explode('Payhesap', $other_code)[1],
-					'amount'   => $amount,
-					'hash'     => $verify_hash
-				];
+			$ch = curl_init();
+			curl_setopt_array($ch, [
+				CURLOPT_URL => "https://www.payhesap.com/api/pay/checkOrder",
+				CURLOPT_RETURNTRANSFER => true,
+				CURLOPT_SSL_VERIFYPEER => false,
+				CURLOPT_SSL_VERIFYHOST => false,
+				CURLOPT_FRESH_CONNECT => true,
+				CURLOPT_TIMEOUT => 30,
+				CURLOPT_CUSTOMREQUEST => "POST",
+				CURLOPT_POSTFIELDS => ['hash' => $hash]
+			]);
+			$response = @curl_exec($ch);
+
+			if (curl_errno($ch)) {
+				$this->error = curl_error($ch);
 			} else {
-				$this->error = "Invalid Verification Code";
+
+				$result = json_decode($response, true);
+
+				if ($result['statusID'] == true) {
+					return [
+						'order_id' => explode('PH', $order_id)[1],
+						'hash'     => $hash
+					];
+				} else {
+					$this->error = "Payment Failed";
+				}
 			}
-		} else {
-			//$this->error = $result_message;
-		}*/
+			curl_close($ch);
+		}
 	}
 
 	private function GetIP()
