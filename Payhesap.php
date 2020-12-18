@@ -155,6 +155,9 @@ class Payhesap
 				]
 			];
 
+
+			$encode = json_encode($post, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+			
 			$ch = curl_init();
 			curl_setopt_array($ch, [
 				CURLOPT_URL => "https://www.payhesap.com/api/pay",
@@ -163,8 +166,12 @@ class Payhesap
 				CURLOPT_SSL_VERIFYHOST => false,
 				CURLOPT_FRESH_CONNECT => true,
 				CURLOPT_TIMEOUT => 30,
-				CURLOPT_POST => true,
-				CURLOPT_POSTFIELDS => $post
+				CURLOPT_CUSTOMREQUEST => "POST",
+				CURLOPT_POSTFIELDS => $encode,
+				CURLOPT_HTTPHEADER => [
+					'Content-Type: application/json',
+					'Content-Length: ' . strlen($encode)
+				]
 			]);
 			$response = @curl_exec($ch);
 
@@ -173,6 +180,7 @@ class Payhesap
 			} else {
 
 				$result = json_decode($response, true);
+				print_r($post);
 				if ($result['status'] == true) {
 					return $result['payUrl'];
 				} else {
@@ -185,6 +193,9 @@ class Payhesap
 
 	public function callback()
 	{
+		echo '<pre>';
+		print_r($_REQUEST);
+		echo '</pre>';
 		/*$status         = $this->post('status');
 		$result_message = $this->post('resultMessage');
 		$other_code     = $this->post('otherCode');
