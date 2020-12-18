@@ -30,8 +30,10 @@ $payhesap->set_buyer([
 ]);
 
 
-if ($payhesap->get_error() != null) {
-    echo $payhesap->get_error();
+$init = $payhesap->init();
+
+if ($init == null) {
+    print_r($payhesap->get_error());
 } else {
-    header("Location: " . $payhesap->init());
+    header("Location: " . $init);
 }
